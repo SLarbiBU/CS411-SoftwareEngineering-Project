@@ -1,1 +1,5 @@
-User Story #2
+User Story #1
+
+As a logged in user, I only have a short amount of time to watch something and I want a quick Netflix recommendation.
+
+The user will open up the web application and sign in with their Twitter account, as detailed in the user log in story. Once the user has logged in, they will be given an option to select movie recommendations, TV show recommendations, or both. The user will select TV show recommendations and then select Find Me a Recommendation. The user will then wait while the web application pulls information from their Twitter profile to match them with a TV Show. Once the application has finished matching, the User will be presented with a TV show title, the cover for the TV show, a Netflix rating, and description. If this show is of interest to the User, they can choose to add it to their interested list. If they wish to watch the TV show immediately, they can choose Take Me to Netflix. If the User does not like the suggestion they received they can add it to their not interested list and select Find Me a Recommendation again. The web application will tabulate a new recommendation for the User, and will not present a title which has already been suggested.  
