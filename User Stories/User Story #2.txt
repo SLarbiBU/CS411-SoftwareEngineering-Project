@@ -1,1 +1,5 @@
 User Story #2
+
+As a user without an account, I want an easy way to register for a new account and link my Twitter account to the application.
+
+The potential user would open up the web application, and the application would open up a login page, while also providing an option to sign up for a new account underneath. After clicking the registration option, the applcation will ask the user to enter basic information, such as their name, gender, age, email address and password. Once the user has entered the necessary information, the application will take them to a screen that will ask them to verify their account by sending them an email. After their email address has been verified, the application will offer a link to register for a Twitter account if they do not already have one, and an option to directly link their Twitter account if they do have a Twitter account. Finally, once the account has been linked, the application will redirect the user to the original login page, where the user can then enter their login credentials to enter the recommendation aspect of the web application, highlighted in the recommendation user story.
