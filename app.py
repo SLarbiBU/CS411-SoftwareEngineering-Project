@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 # Twitter authorization
 def oauth_req(url, key, secret, http_method="GET", post_body="", http_headers=None):
-    consumer = oauth2.Consumer(key='LHsDAJLVadlCEHdUZiIajShJr', secret='8GToEYjRMbSYBt2Ipfo57ATzD2YZnsz0wfNKWKMEC0jZpO3MQb')
+    consumer = oauth2.Consumer(key=key, secret=SECRET)
     token = oauth2.Token(key=key, secret=secret)
     client = oauth2.Client(consumer, token)
     resp, content = client.request( url, method=http_method, body=bytes(post_body, "utf-8"), headers=http_headers )
@@ -20,7 +20,7 @@ def show_result():
 	text = request.form['searchValue']
 	url = 'https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name='
 	url += text + '&include_rts=false&count=200'
-	r = oauth_req(url, '2803459857-WAopMGvcJyZQBDjTTIcr1xBUdUR6QRpiekFSbIM', 'CedsLyXQWUzSoxQoiaUC3XHK1Ce4eXKOKciGG1ZwPaqNC')
+	r = oauth_req(url, token, key)
 	tweets = json.loads(r)
 	return render_template('results.html', tweets=tweets)
 
