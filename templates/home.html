@@ -1,16 +1,22 @@
+<!DOCTYPE html>
+<html>
 <style>
-body {
-    background-color:#787878 ;
-}
+body {background-color:#787878;}
+p {color:white;}
+li {color:white;}
+a {color:white;}
 </style>
 <body >
-
+<p>
 {% if message %}
-<p style="color:white;"> {{message}}! <a style="color:white;" href='/logout' >Logout</a></p>
+ {{message}}! <a href='/logout' >Logout</a>
 
 {% endif %} 
+</p>
 {% for tweet in tweets %}
-	<li style="color:white;">{{ tweet.text }}</li>
+	<li>{{ tweet.text }}</li>
 {% endfor %}
+</body>
+</html>
 
 
