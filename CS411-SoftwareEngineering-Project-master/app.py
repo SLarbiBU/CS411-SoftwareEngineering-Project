@@ -1,7 +1,7 @@
 # coding: utf-8
 
 from flask import Flask
-from flask import g, session, request, url_for, flash, json
+from flask import g, session, request, url_for, flash
 from flask import redirect, render_template
 from flask_oauthlib.client import OAuth
 
@@ -82,7 +82,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('twitter_oauth', None)
-    return redirect(url_for('index'))
+    return render_template('index.html',message = 'You have logged out.')
 
 
 @app.route('/oauthorized')
@@ -92,20 +92,11 @@ def oauthorized():
         flash('You denied the request to sign in.')
     else:
         session['twitter_oauth'] = resp
-
-    return redirect(url_for('home'))
+    return render_template('home.html',message = 'Welcome, %s' % resp['screen_name'])
     
 @app.route('/home')
 def home():
-    tweets = None
-    if g.user is not None:
-        resp = twitter.request('statuses/user_timeline.json?include_rts=false')
-        if resp.status == 200:
-            tweets = resp.data
-        else:
-            flash('Unable to load tweets from Twitter.')
-    print(session.keys())
-    return render_template('home.html', tweets=tweets)
+    return render_template('home.html')
 
 
 if __name__ == '__main__':
