@@ -1,9 +1,16 @@
+<style>
+body {
+    background-color:#787878 ;
+}
+</style>
+<body >
+
 {% if message %}
-{{message}}! <a href='/logout'>Logout</a>
+<p style="color:white;"> {{message}}! <a style="color:white;" href='/logout' >Logout</a></p>
 
 {% endif %} 
 {% for tweet in tweets %}
-	<li>{{ tweet.text }}</li>
+	<li style="color:white;">{{ tweet.text }}</li>
 {% endfor %}
 
 
