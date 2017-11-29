@@ -1,12 +1,7 @@
-{% block body %}
-{% for tweet in tweets %}
-	<li>{{ tweet.text}}</li>
-{% endfor %}
-{% endblock %}
-<ul>
-    
-    <li><a href='/logout'>Logout</a></li>
-   
-    
+{% if message %}
+{{message}}! <a href='/logout'>Logout</a>
 
-</ul>
+{% endif %} 
+
+
+
