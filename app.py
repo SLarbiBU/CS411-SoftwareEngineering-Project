@@ -1,32 +1,103 @@
-from flask import Flask, render_template, json, request
-import requests
-import oauth2
-import config
-app = Flask(__name__)
+# coding: utf-8
 
-# Twitter authorization
-def oauth_req(url, key, secret, http_method="GET", post_body="", http_headers=None):
-    consumer = oauth2.Consumer(key=config.consumer_key, secret=config.consumer_secret)
-    token = oauth2.Token(key=key, secret=secret)
-    client = oauth2.Client(consumer, token)
-    resp, content = client.request( url, method=http_method, body=bytes(post_body, "utf-8"), headers=http_headers )
-    return content
+from flask import Flask
+from flask import g, session, request, url_for, flash
+from flask import redirect, render_template
+from flask_oauthlib.client import OAuth
+
+
+app = Flask(__name__)
+app.debug = True
+app.secret_key = 'development'
+
+oauth = OAuth(app)
+
+twitter = oauth.remote_app(
+    'twitter',
+    consumer_key='x1bauJFCVGQPmnULdsQ35k3Oq',
+    consumer_secret='A5eSsntsZQ2C0gbv9MRdZhglq0h0a03qjGqPsMsbK8h2oP8d69',
+    base_url='https://api.twitter.com/1.1/',
+    request_token_url='https://api.twitter.com/oauth/request_token',
+    access_token_url='https://api.twitter.com/oauth/access_token',
+    authorize_url='https://api.twitter.com/oauth/authorize'
+)
+
+
+@twitter.tokengetter
+def get_twitter_token():
+    if 'twitter_oauth' in session:
+        resp = session['twitter_oauth']
+        return resp['oauth_token'], resp['oauth_token_secret']
+
+
+@app.before_request
+def before_request():
+    g.user = None
+    if 'twitter_oauth' in session:
+        g.user = session['twitter_oauth']
+
 
 @app.route('/')
-def search():
-	return render_template('index.html')
+def index():
+    tweets = None
+    if g.user is not None:
+        resp = twitter.request('statuses/home_timeline.json')
+        if resp.status == 200:
+            tweets = resp.data
+        else:
+            flash('Unable to load tweets from Twitter.')
+    return render_template('index.html', tweets=tweets)
 
-@app.route('/results', methods=['GET', 'POST'])
-def show_result():
-	text = request.form['searchValue']
-	url = 'https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name='
-	url += text + '&include_rts=false&count=200'
-	r = oauth_req(url, config.access_token, config.access_token_secret)
-	tweets = json.loads(r)
-	return render_template('results.html', tweets=tweets)
 
-if __name__ == "__main__":
-	app.run()
+@app.route('/tweet', methods=['POST'])
+def tweet():
+    if g.user is None:
+        return redirect(url_for('login', next=request.url))
+    status = request.form['tweet']
+    if not status:
+        return redirect(url_for('index'))
+    resp = twitter.post('statuses/update.json', data={
+        'status': status
+    })
 
-#@app.route('/results'):
-#def showPost():
+    if resp.status == 403:
+        flash("Error: #%d, %s " % (
+            resp.data.get('errors')[0].get('code'),
+            resp.data.get('errors')[0].get('message'))
+        )
+    elif resp.status == 401:
+        flash('Authorization error with Twitter.')
+    else:
+        flash('Successfully tweeted your tweet (ID: #%s)' % resp.data['id'])
+    return redirect(url_for('index'))
+
+
+@app.route('/login')
+def login():
+    callback_url = url_for('oauthorized', next=request.args.get('next'))
+    flash('You accept the request to sign in.')
+    return twitter.authorize(callback=callback_url or request.referrer or None)
+
+
+@app.route('/logout')
+def logout():
+    session.pop('twitter_oauth', None)
+    return render_template('index.html',message = 'You have logged out.')
+
+
+@app.route('/oauthorized')
+def oauthorized():
+    resp = twitter.authorized_response()
+    if resp is None:
+        flash('You denied the request to sign in.')
+    else:
+        session['twitter_oauth'] = resp
+    return render_template('home.html',message = 'Welcome, %s' % resp['screen_name'])
+    
+@app.route('/home')
+def home():
+    return render_template('home.html')
+
+
+if __name__ == '__main__':
+    app.run()
