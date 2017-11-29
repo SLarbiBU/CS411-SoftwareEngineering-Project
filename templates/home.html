@@ -1,3 +1,7 @@
+{% if message %}
+{{message}}! <a href='/logout'>Logout</a>
+
+{% endif %} 
 {% for tweet in tweets %}
 	<li>{{ tweet.text }}</li>
 {% endfor %}

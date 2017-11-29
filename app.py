@@ -106,7 +106,7 @@ def home():
             flash('Unable to load tweets from Twitter.')
     parsed_tweets = [t['text'] for t in tweets]
     # this is where you can call the tweet word frequency algorithm to get the top words
-    return render_template('home.html', tweets=tweets)
+    return render_template('home.html',message = 'Welcome, %s' % session['twitter_oauth']['screen_name'],tweets=tweets)
 
 
 if __name__ == '__main__':
