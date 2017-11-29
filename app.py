@@ -93,11 +93,20 @@ def oauthorized():
         flash('You denied the request to sign in.')
     else:
         session['twitter_oauth'] = resp
-    return render_template('home.html',message = 'Welcome, %s' % resp['screen_name'])
+    return redirect(url_for('home'))
     
 @app.route('/home')
 def home():
-    return render_template('home.html')
+    tweets = None
+    if g.user is not None:
+        resp = twitter.request('statuses/user_timeline.json?include_rts=false')
+        if resp.status == 200:
+            tweets = resp.data
+        else:
+            flash('Unable to load tweets from Twitter.')
+    parsed_tweets = [t['text'] for t in tweets]
+    # this is where you can call the tweet word frequency algorithm to get the top words
+    return render_template('home.html', tweets=tweets)
 
 
 if __name__ == '__main__':
