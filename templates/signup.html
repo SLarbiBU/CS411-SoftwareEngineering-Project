@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Sign Up</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="../static/signup.js"></script>
+</head>
+<body>
+{% if message %}
+{{message}}!
+{% endif %}
+<form name="signup" action="/signup" method="post">
+	<h1>Sign Up</h1>
+	<label for="inputName" class="sr-only">Name</label>
+	<input type="name" name="inputName" id="inputName" class="form-control" placeholder="Name" required autofocus><br>
+	<label for="inputUsername" class="sr-only">Username</label>
+	<input type="username" name="inputUsername" id="inputUsername" class="form-control" placeholder="Username" required autofocus><br>
+	<label for="inputPassword" class="sr-only">Password</label>
+	<input type="password" name="inputPassword" id="inputPassword" class="form-control" placeholder="Password" required><br>
+	<button id="btnSignUp" class="btn btn-lg btn-primary btn-block" type="submit">Sign Up</button>
+</form>
+</body>
+</html>
