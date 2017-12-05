@@ -126,18 +126,19 @@ def login():
                             tweets = [t['text'] for t in tweets]
                             top = 5
                             movie_dict = []
+                            tweet_freq = tweet_word_frequency.Word_Frequency(tweets)
+                            query = tweet_freq.set_search_term()
+                            most_common = tweet_freq.get_most_common(top)
                             for i in range(top):
 
-                                tweet_freq = tweet_word_frequency.Word_Frequency(tweets)
-                                query = tweet_freq.set_search_term()
-                                query = tweet_freq.search_terms[i]
+                                print(most_common)
+                                query = most_common[i]
                                 url = "https://api.themoviedb.org/3/search/movie?api_key="+config.tmdb_key+"&language=en-US&query="+query
                                 payload = "{}"
                                 response = requests.request("GET", url, data=payload)
                                 result = json.loads(response.text)
                                 movie_list= result['results']
                                 selected_movies = sample(range(len(movie_list)), 2)
-                                print(selected_movies)
 
                                 for j in selected_movies:
                                     movie = {}
@@ -147,7 +148,6 @@ def login():
                                     movie['poster_path'] = "https://image.tmdb.org/t/p/w500" + movie_list[j]['poster_path']
                                     movie_dict.append(movie)
 
-                            print(movie_dict)
                             return render_template('movies.html', movies=movie_dict, message="Welcome, %s" % twit_un)
                         else: # username is not in database, authenticate as if logging in with twitter
                             callback_url = url_for('oauthorized', next=request.args.get('next'))
@@ -249,7 +249,6 @@ def home():
             result = json.loads(response.text)
             movie_list= result['results']
             selected_movies = sample(range(len(movie_list)), 2)
-            print(selected_movies)
 
             for j in selected_movies:
                 movie = {}
