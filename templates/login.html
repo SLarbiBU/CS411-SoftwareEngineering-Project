@@ -33,6 +33,9 @@
     <div class="container wrap1" style="height:450px; font-family:verdana">
             <div class="col-sm-8 col-md-5 center-auto pd-sm-50 pd-xs-20 main_content" >
                 <p class="text-center font16">User Login</p>
+                {% if message %}
+                {{message}}!
+                {% endif %} 
                 <form name="login" action="/login" method="post">
                     <div class="form-group mg-t20" style ="font-family:verdana">
                         <i class="icon-user icon_font"></i>
