@@ -1,29 +1,38 @@
 <!DOCTYPE html>
 <html>
-    <title> Movie Recommendations </title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <head>
     <style>
-        body,h1 {font-family: "Raleway", sans-serif}
-        body, html {height: 100%}
-        .bgimg {
-        background-image: url('/static/background.png');
+        body{
+        background-image: url('https://www.oakwoodmall.com/content/dam/rw-2/images/mall-images/mall-features/movies-desktop.png');
         min-height: 100%;
         background-position: center;
         background-size: cover;
+        color: white;
+        }
+        h1{
+        font-family: "Raleway", sans-serif;
+        color: white; 
         }
     </style>
-    <body>
-    
-        {%for movie in movies%}
-            {{movie.poster_path}}
-            {{movie.title}}
-            {{movie.description}}
-            {{movie.vote_average}}
-        {%endfor%}
+    </head>
 
+    <body>
+    <div id='movie' align='center'>
+        <h1> Movie Recommendations </h1>
+        {%for movie in movies%}
+            <img src= {{movie.poster_path}}>
+            <br>
+            <p>Title:</p>
+            {{movie.title}}
+            <br>
+            <p>Description:</p>
+            {{movie.description}}
+            <br>
+            <p>Vote Average:</p>
+            {{movie.vote_average}}
+            <br>
+        {%endfor%}
+    </div>
     </body>
 
 </html>
