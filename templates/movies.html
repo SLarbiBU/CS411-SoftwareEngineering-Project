@@ -10,8 +10,13 @@
         color: white;
         }
         h1{
-        font-family: "Raleway", sans-serif;
+        font-family: "Impact", sans-serif;
         color: white; 
+        font-size: 40px;
+        }
+        p{
+            font-family: "Raleway", sans-serif;
+            font-size: 18px;
         }
     </style>
     </head>
@@ -22,14 +27,9 @@
         {%for movie in movies%}
             <img src= {{movie.poster_path}}>
             <br>
-            <p>Title:</p>
-            {{movie.title}}
-            <br>
-            <p>Description:</p>
-            {{movie.description}}
-            <br>
-            <p>Vote Average:</p>
-            {{movie.vote_average}}
+            <p>Title: {{movie.title}} </p>
+            <p>Description:{{movie.description}} </p>
+            <p>Vote Average:{{movie.vote_average}} </p>
             <br>
         {%endfor%}
     </div>
