@@ -1,37 +1,60 @@
 <!DOCTYPE html>
 <html>
     <head>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="iconfont/style.css" type="text/css" rel="stylesheet">
     <style>
         body{
-        background-image: url('https://www.oakwoodmall.com/content/dam/rw-2/images/mall-images/mall-features/movies-desktop.png');
-        min-height: 100%;
-        background-position: center;
-        background-size: cover;
-        color: white;
+            background-image: url('/static/background.png');
+            background-size: 100%,100%;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
-        h1{
-        font-family: "Impact", sans-serif;
-        color: white; 
-        font-size: 40px;
+        h1, h4{
+            font-family: "Raleway", sans-serif;
+            color: white; 
+            font-size: 40px;
+            text-align: center;
         }
         p{
             font-family: "Raleway", sans-serif;
             font-size: 18px;
+            color: white;
+        }
+        #wrap{
+            width: 100%;
+            height: 500px;
+            margin: 10px;
+            padding: 10px;
+            display: block;
+        }
+        #text{
+            width: 50%;
+            height: 500px;
+            float: right;
+            text-align: center;
+            vertical-align: middle
+        }
+        #poster{
+            width: 50%;
+            height: 500px;
+            float: left;
         }
     </style>
     </head>
-
     <body>
-    <div id='movie' align='center'>
-        <h1> Movie Recommendations </h1>
-        {%for movie in movies%}
-            <img src= {{movie.poster_path}}>
-            <br>
-            <p>Title: {{movie.title}} </p>
-            <p>Description:{{movie.description}} </p>
-            <p>Vote Average:{{movie.vote_average}} </p>
-            <br>
-        {%endfor%}
+    <h1> <b> Movie Recommendations </b> </h1>
+    <div id='wrap' align="center">
+    {% for movie in movies %}
+        <div id="poster">
+            <img src= {{movie.poster_path}} height="400px">
+        </div>
+        <div id="text">
+            <h4>{{movie.title}}</h4>
+            <p>Description: {{movie.description}}</p>
+            <p> Vote Average: {{movie.vote_average}}</p>
+    </div>
+    {%endfor%}
     </div>
     </body>
 
