@@ -7,14 +7,13 @@ from flask_oauthlib.client import OAuth
 from flask_mysqldb import MySQL
 from werkzeug import generate_password_hash, check_password_hash
 import requests
-import config
 import oauth2
-import tweet_word_frequency
-from random import sample
+import config
+import movies
 
 app = Flask(__name__)
 app.debug = True
-app.secret_key = 'development'
+app.secret_key = config.flask_key
 
 mysql = MySQL()
 
@@ -61,37 +60,7 @@ def before_request():
 
 @app.route('/')
 def index():
-    tweets = None
-    if g.user is not None:
-        resp = twitter.request('statuses/home_timeline.json')
-        if resp.status == 200:
-            tweets = resp.data
-        else:
-            flash('Unable to load tweets from Twitter.')
-    return render_template('index.html', tweets=tweets)
-
-
-@app.route('/tweet', methods=['POST'])
-def tweet():
-    if g.user is None:
-        return redirect(url_for('login', next=request.url))
-    status = request.form['tweet']
-    if not status:
-        return redirect(url_for('index'))
-    resp = twitter.post('statuses/update.json', data={
-        'status': status
-    })
-
-    if resp.status == 403:
-        flash("Error: #%d, %s " % (
-            resp.data.get('errors')[0].get('code'),
-            resp.data.get('errors')[0].get('message'))
-        )
-    elif resp.status == 401:
-        flash('Authorization error with Twitter.')
-    else:
-        flash('Successfully tweeted your tweet (ID: #%s)' % resp.data['id'])
-    return redirect(url_for('index'))
+    return render_template('index.html')
 
 @app.route('/showLogin')
 def showLogin():
@@ -100,12 +69,14 @@ def showLogin():
 @app.route('/login', methods=['POST'])
 def login():
     if request.method == 'POST':
+
+        # authorize Twitter to access your account if the "Login via Twitter" button is pressed
         if request.form['login'] == "Login via Twitter":
             callback_url = url_for('oauthorized', next=request.args.get('next'))
             flash('You accept the request to sign in.')
             return twitter.authorize(callback=callback_url or request.referrer or None)
+
         elif request.form['login'] == "Login":
-            # check credentials in database and see if they match
             try:
                 username = request.form['inputUsername']
                 password = request.form['inputPassword']
@@ -116,50 +87,40 @@ def login():
                 data = cursor.fetchall()
 
                 if len(data) > 0:
+
+                    # check credentials in database and see if they match
                     if check_password_hash(str(data[0][2]), password):
                         session['user'] = username
                         twit_un = str(data[0][3])
+
                         # check if twitter username is in database, and run request with it if it is
                         if data[0][3] is not None:
                             tweets = oauth_req("https://api.twitter.com/1.1/statuses/user_timeline.json?include_rts=false&screen_name="+twit_un, config.access_token, config.access_token_secret)
                             tweets = json.loads(tweets)
                             tweets = [t['text'] for t in tweets]
-                            top = 5
-                            movie_dict = []
-                            tweet_freq = tweet_word_frequency.Word_Frequency(tweets)
-                            query = tweet_freq.set_search_term()
-                            most_common = tweet_freq.get_most_common(top)
-                            for i in range(top):
 
-                                print(most_common)
-                                query = most_common[i]
-                                url = "https://api.themoviedb.org/3/search/movie?api_key="+config.tmdb_key+"&language=en-US&query="+query
-                                payload = "{}"
-                                response = requests.request("GET", url, data=payload)
-                                result = json.loads(response.text)
-                                movie_list= result['results']
-                                selected_movies = sample(range(len(movie_list)), 2)
-
-                                for j in selected_movies:
-                                    movie = {}
-                                    movie['title'] = movie_list[j]['title']
-                                    movie['description'] = movie_list[j]['overview']
-                                    movie['vote_average'] = movie_list[j]['vote_average']
-                                    movie['poster_path'] = "https://image.tmdb.org/t/p/w500" + movie_list[j]['poster_path']
-                                    movie_dict.append(movie)
+                            # get the top words used (number based on the top variable)
+                            # NOTE: VALUE OF TOP CANNOT EXCEED 40; only 40 requests are allowed per 15 seconds
+                            top_num = 5
+                            top_words = movies.get_top_words(tweets, top_num)
+                            movie_dict = movies.create_movie_dictionary(top_words)
 
                             return render_template('movies.html', movies=movie_dict, message="Welcome, %s" % twit_un)
+
                         else: # username is not in database, authenticate as if logging in with twitter
                             callback_url = url_for('oauthorized', next=request.args.get('next'))
                             flash('You accept the request to sign in.')
                             return twitter.authorize(callback=callback_url or request.referrer or None)
-                    else:
+
+                    else: # credentials didn't match
                         return redirect(url_for('showLogin', message="Username/password is incorrect"))
-                else:
+
+                else: # username didn't match
                     return redirect(url_for('showLogin', message="Username/password is incorrect"))
+
             except Exception as e:
-                print(e)
                 return redirect(url_for('showLogin', message="An error has occurred"))
+
             finally:
                 cursor.close()
                 conn.close()
@@ -174,31 +135,27 @@ def signup():
     username = request.form['inputUsername']
     password = request.form['inputPassword']
 
-    conn = mysql.connect
-    cursor = conn.cursor()
-    hashed_password = generate_password_hash(password)
-    cursor.callproc('sp_createUser', [name, username, hashed_password])
-    data = cursor.fetchall()
-
     try:
+        conn = mysql.connect
+        cursor = conn.cursor()
+        hashed_password = generate_password_hash(password)
+        cursor.callproc('sp_createUser', [name, username, hashed_password])
+        data = cursor.fetchall()
+
         if name and username and password and request.method == 'POST':
             if len(data) is 0:
                 conn.commit()
                 return redirect(url_for('showLogin', message="Successfully signed up! Login in to link your Twitter account"))
+
             else:
-                # FIX BUG WITH RESULT PAGE
                 return redirect(url_for('showSignup', message="Username already exists! Enter a valid username"))
+
     except Exception as e:
-        print(e)
         return redirect(url_for('showSignup'))
+
     finally:
         cursor.close()
         conn.close()
-
-
-# @app.route('/result')
-# def success():
-#     return render_template('result.html')
 
 @app.route('/logout')
 def logout():
@@ -231,43 +188,27 @@ def home():
         conn = mysql.connect 
         cursor = conn.cursor()
 
+        # add twitter username into database to access later
         twit_un = tweets[0]["user"]["screen_name"]
         username = session.get('user')
         cursor.callproc('sp_addTwitterUser', [username, twit_un])
         conn.commit()
+
+        # get the top words used (number based on the top variable)
+        # NOTE: VALUE OF TOP CANNOT EXCEED 40; only 40 requests are allowed per 15 seconds
         tweets = [t['text'] for t in tweets]
-        top = 5
-        movie_dict = []
-        for i in range(top):
+        top_num = 5
+        top_words = movies.get_top_words(tweets, top_num)
+        movie_dict = movies.create_movie_dictionary(top_words)
 
-            tweet_freq = tweet_word_frequency.Word_Frequency(tweets)
-            query = tweet_freq.set_search_term()
-            query = tweet_freq.search_terms[i]
-            url = "https://api.themoviedb.org/3/search/movie?api_key="+config.tmdb_key+"&language=en-US&query="+query
-            payload = "{}"
-            response = requests.request("GET", url, data=payload)
-            result = json.loads(response.text)
-            movie_list= result['results']
-            selected_movies = sample(range(len(movie_list)), 2)
-
-            for j in selected_movies:
-                movie = {}
-                movie['title'] = movie_list[j]['title']
-                movie['description'] = movie_list[j]['overview']
-                movie['vote_average'] = movie_list[j]['vote_average']
-                movie['poster_path'] = "https://image.tmdb.org/t/p/w500" + movie_list[j]['poster_path']
-                movie_dict.append(movie)
-        # this is where you can call the tweet word frequency algorithm to get the top words
         return render_template('movies.html',movies=movie_dict, message = 'Welcome, %s' % session['twitter_oauth']['screen_name'],tweets=tweets)
 
     except Exception as e:
-        print(e)
         return (redirect(url_for('index')))
+
     finally:
         cursor.close()
         conn.close()
-
-
 
 if __name__ == '__main__':
     app.run()
